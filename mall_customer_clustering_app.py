@@ -1,42 +1,43 @@
-import streamlit as st
-import pickle
+# Import required libraries
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
-# 🎯 Title (UPDATED)
-st.title("🛍️ Mall Customer Clustering App")
+# Load dataset (make sure Mall_Customers.csv is in same folder)
+dataset = pd.read_csv('Mall_Customers.csv')
 
-st.write("Enter customer details to find their cluster")
+# Select features (Annual Income and Spending Score)
+X = dataset.iloc[:, [3, 4]].values
 
-# 📥 Load model
-with open("kmeans_model.pkl", "rb") as f:
-    model = pickle.load(f)
+# -----------------------------
+# Find optimal number of clusters using Elbow Method
+# -----------------------------
+wcss = []
 
-# 📊 Input
-income = st.number_input("Annual Income (k$)", min_value=0)
-spending = st.number_input("Spending Score (1-100)", min_value=0, max_value=100)
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42)
+    kmeans.fit(X)
+    wcss.append(kmeans.inertia_)
 
-# 🔍 Button
-if st.button("Find Customer Cluster"):
-    
-    data = np.array([[income, spending]])
-    cluster = model.predict(data)[0]
+# Plot Elbow graph
+plt.plot(range(1, 11), wcss)
+plt.title('Elbow Method')
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
+plt.show()
 
-    # ✅ Output
-    st.success(f"Cluster: {cluster}")
+# -----------------------------
+# Apply K-Means
+# -----------------------------
+kmeans = KMeans(n_clusters=5, init='k-means++', random_state=42)
+y_kmeans = kmeans.fit_predict(X)
 
-    # 💡 Cluster meaning
-    if cluster == 0:
-        st.info("Low Income, Low Spending")
-    elif cluster == 1:
-        st.info("High Income, High Spending (Premium Customers 💎)")
-    elif cluster == 2:
-        st.info("High Income, Low Spending (Target Customers 🎯)")
-    elif cluster == 3:
-        st.info("Low Income, High Spending")
-    else:
-        st.info("Average Customers")
-
-    # ✨ Insight
-    st.markdown("### 💡 Insight")
-    st.write("High income but low spending customers are target customers for marketing.")
+# -----------------------------
+# Visualization
+# -----------------------------
+plt.scatter(X[y_kmeans == 0, 0], X[y_kmeans == 0, 1], s=50, label='Cluster 1')
+plt.scatter(X[y_kmeans == 1, 0], X[y_kmeans == 1, 1], s=50, label='Cluster 2')
+plt.scatter(X[y_kmeans == 2, 0], X[y_kmeans == 2, 1], s=50, label='Cluster 3')
+plt.scatter(X[y_kmeans == 3, 0], X[y_kmeans == 3, 1], s=50, label='Cluster 4')
+plt.scatter(X[y_kmeans == 4, 0], X[y_kmeans == 4,
