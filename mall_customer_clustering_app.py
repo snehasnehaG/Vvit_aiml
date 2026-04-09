@@ -1,6 +1,7 @@
 import streamlit as st
 import pickle
 import numpy as np
+from sklearn.cluster import KMeans
 
 # 🎯 Title (UPDATED)
 st.title("🛍️ Mall Customer Clustering App")
