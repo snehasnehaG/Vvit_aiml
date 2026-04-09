@@ -9,7 +9,7 @@ st.write("Enter customer details to find their cluster")
 
 # 📥 Load model
 with open("kmeans_model.pkl", "rb") as f:
-    model = pickle.load(f)
+model = pickle.load(f)
 
 # 📊 Input
 income = st.number_input("Annual Income (k$)", min_value=0)
