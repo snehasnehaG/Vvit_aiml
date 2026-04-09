@@ -8,8 +8,10 @@ st.title("🛍️ Mall Customer Clustering App")
 st.write("Enter customer details to find their cluster")
 
 # 📥 Load model
-import joblib
-model = joblib.load("kmeans_model.pkl")
+import pickle
+
+with open("kmeans_model.pkl", "rb") as f:
+    model = pickle.load(f)
 
 # 📊 Input
 income = st.number_input("Annual Income (k$)", min_value=0)
