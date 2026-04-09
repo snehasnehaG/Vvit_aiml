@@ -1,60 +1,36 @@
- 
-import streamlit as s
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
+import streamlit as st
+import pandas as pd
+import numpy as np
 
-st.title("Mall Customer Clustering")
+# Title
+st.title("🛍️ Mall Customer Clustering App")
 
-uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+# Description
+st.write("Enter customer details to see their income and spending score.")
 
-if uploaded_file is not None:
-    data = pd.read_csv(uploaded_file)
+# Input: Annual Income
+income = st.number_input("Enter Annual Income (k$)", min_value=0, max_value=200)
 
-    st.write("Dataset Preview")
-    st.write(data.head())
+# Input: Spending Score
+spending_score = st.slider("Select Spending Score (1-100)", 1, 100)
 
-    # Check columns safely
-    if data.shape[1] < 5:
-        st.error("Dataset must have at least 5 columns")
-    else:
-        X = data.iloc[:, [3, 4]].values
+# Button
+if st.button("Submit"):
+    st.success(f"Income: {income} k$ | Spending Score: {spending_score}")
 
-        # Elbow Method
-        wcss = []
-        for i in range(1, 11):
-            model = KMeans(n_clusters=i, random_state=42)
-            model.fit(X)
-            wcss.append(model.inertia_)
+# Checkbox example
+if st.checkbox("Show customer message"):
+    st.write("Customer data recorded successfully.")
 
-        fig, ax = plt.subplots()
-        ax.plot(range(1, 11), wcss)
-        ax.set_title("Elbow Method")
-        ax.set_xlabel("Clusters")
-        ax.set_ylabel("WCSS")
-        st.pyplot(fig)
+# Simple chart
+data = pd.DataFrame(
+    np.random.randn(20, 2),
+    columns=['Income', 'Spending Score']
+)
 
-        k = st.slider("Select clusters", 2, 10, 5)
+st.line_chart(data) 
 
-        model = KMeans(n_clusters=k, random_state=42)
-        y = model.fit_predict(X)
+   
+        
 
-        fig2, ax2 = plt.subplots()
-
-        for i in range(k):
-            ax2.scatter(X[y == i, 0], X[y == i, 1], label=f"Cluster {i+1}")
-
-        ax2.scatter(model.cluster_centers_[:, 0],
-                    model.cluster_centers_[:, 1],
-                    marker='X',
-                    s=200,
-                    label="Centroids")
-
-        ax2.set_xlabel("Income")
-        ax2.set_ylabel("Spending Score")
-        ax2.legend()
-
-        st.pyplot(fig2)
-
-else:
-    st.info("Upload dataset to continue")   
     
