@@ -1,50 +1,42 @@
-import streamlit as st
+
+# Import libraries
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
-# Title
-st.title("🛍️ Mall Customer Clustering App")
-
 # Load dataset
-url = "https://raw.githubusercontent.com/plotly/datasets/master/mall_customers.csv"
-df = pd.read_csv(url)
+# Download from Kaggle and place CSV in same folder
+df = pd.read_csv('Mall_Customers.csv')
 
-# Show data
-st.subheader("Dataset Preview")
-st.write(df.head())
+# Select features (Annual Income & Spending Score)
+X = df.iloc[:, [3, 4]].values
 
-# Select features
-st.subheader("Select Features for Clustering")
-feature1 = st.selectbox("Select X-axis feature", df.columns[1:])
-feature2 = st.selectbox("Select Y-axis feature", df.columns[1:])
+# 🔹 Find optimal number of clusters using Elbow Method
+wcss = []
 
-X = df[[feature1, feature2]]
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42)
+    kmeans.fit(X)
+    wcss.append(kmeans.inertia_)
 
-# Choose number of clusters
-k = st.slider("Select number of clusters (K)", 2, 10, 3)
+# Plot Elbow graph
+plt.plot(range(1, 11), wcss)
+plt.title('Elbow Method')
+plt.xlabel('Number of Clusters')
+plt.ylabel('WCSS')
+plt.show()
 
-# Apply KMeans
-model = KMeans(n_clusters=k, random_state=42)
-df["Cluster"] = model.fit_predict(X)
+# 🔹 Apply K-Means (k = 5 is optimal usually)
+kmeans = KMeans(n_clusters=5, init='k-means++', random_state=42)
+y_kmeans = kmeans.fit_predict(X)
 
-# Show clustered data
-st.subheader("Clustered Data")
-st.write(df.head())
+# 🔹 Visualization
+plt.scatter(X[y_kmeans == 0, 0], X[y_kmeans == 0, 1], s=100, c='red', label='Cluster 1')
+plt.scatter(X[y_kmeans == 1, 0], X[y_kmeans == 1, 1], s=100, c='blue', label='Cluster 2')
+plt.scatter(X[y_kmeans == 2, 0], X[y_kmeans == 2, 1], s=100, c='green', label='Cluster 3')
+plt.scatter(X[y_kmeans == 3, 0], X[y_kmeans == 3, 1], s=100, c='cyan', label='Cluster 4')
+plt.scatter(X[y_kmeans == 4, 0], X[y_kmeans == 4, 1], s=100, c='magenta', label='Cluster 5')
 
-# Plot clustering
-st.subheader("Customer Segments (Scatter Plot)")
-fig, ax = plt.subplots()
-scatter = ax.scatter(X[feature1], X[feature2], c=df["Cluster"])
-ax.set_xlabel(feature1)
-ax.set_ylabel(feature2)
-ax.set_title("Customer Clusters")
-st.pyplot(fig)
-
-# Histogram
-st.subheader("Histogram")
-fig2, ax2 = plt.subplots()
-ax2.hist(X[feature1])
-ax2.set_title(f"Distribution of {feature1}")
-st.pyplot(fig2)
-
+# Centroids
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:,
