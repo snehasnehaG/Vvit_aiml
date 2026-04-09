@@ -6,7 +6,7 @@ import numpy as np
 with open("kmeans_model.pkl", "rb") as f:
     model = pickle.load(f)
 
-st.title("🛍️ Mall Customer Segmentation App")
+st.title("🛍️ Mall Customer clustering App")
 
 st.write("Enter customer details to find their segment")
 
