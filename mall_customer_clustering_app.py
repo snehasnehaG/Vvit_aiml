@@ -1,4 +1,3 @@
-pip install streamlit pandas matplotlib scikit-learn
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,65 +6,45 @@ from sklearn.cluster import KMeans
 # Title
 st.title("🛍️ Mall Customer Clustering App")
 
-# Load Dataset
-@st.cache_data
-def load_data():
-    url = "https://raw.githubusercontent.com/plotly/datasets/master/mall_customers.csv"
-    df = pd.read_csv(url)
-    return df
+# Load dataset
+url = "https://raw.githubusercontent.com/plotly/datasets/master/mall_customers.csv"
+df = pd.read_csv(url)
 
-df = load_data()
-
+# Show data
 st.subheader("Dataset Preview")
 st.write(df.head())
 
-# Select Features
+# Select features
 st.subheader("Select Features for Clustering")
+feature1 = st.selectbox("Select X-axis feature", df.columns[1:])
+feature2 = st.selectbox("Select Y-axis feature", df.columns[1:])
 
-features = st.multiselect(
-    "Choose features",
-    ["Annual Income (k$)", "Spending Score (1-100)"],
-    default=["Annual Income (k$)", "Spending Score (1-100)"]
-)
+X = df[[feature1, feature2]]
 
-if len(features) != 2:
-    st.warning("Please select exactly 2 features for 2D visualization.")
-else:
-    X = df[features]
+# Choose number of clusters
+k = st.slider("Select number of clusters (K)", 2, 10, 3)
 
-    # Choose number of clusters
-    k = st.slider("Select number of clusters (K)", 2, 10, 5)
+# Apply KMeans
+model = KMeans(n_clusters=k, random_state=42)
+df["Cluster"] = model.fit_predict(X)
 
-    # Apply KMeans
-    kmeans = KMeans(n_clusters=k, random_state=42)
-    y_kmeans = kmeans.fit_predict(X)
+# Show clustered data
+st.subheader("Clustered Data")
+st.write(df.head())
 
-    # Plot clusters
-    fig, ax = plt.subplots()
+# Plot clustering
+st.subheader("Customer Segments (Scatter Plot)")
+fig, ax = plt.subplots()
+scatter = ax.scatter(X[feature1], X[feature2], c=df["Cluster"])
+ax.set_xlabel(feature1)
+ax.set_ylabel(feature2)
+ax.set_title("Customer Clusters")
+st.pyplot(fig)
 
-    scatter = ax.scatter(
-        X.iloc[:, 0],
-        X.iloc[:, 1],
-        c=y_kmeans
-    )
+# Histogram
+st.subheader("Histogram")
+fig2, ax2 = plt.subplots()
+ax2.hist(X[feature1])
+ax2.set_title(f"Distribution of {feature1}")
+st.pyplot(fig2)
 
-    # Plot centroids
-    centroids = kmeans.cluster_centers_
-    ax.scatter(
-        centroids[:, 0],
-        centroids[:, 1],
-        s=200,
-        marker='X'
-    )
-
-    ax.set_xlabel(features[0])
-    ax.set_ylabel(features[1])
-    ax.set_title("Customer Segments")
-
-    st.pyplot(fig)
-
-    # Insights
-    st.subheader("Insights")
-    st.write("• Customers are grouped based on income and spending behavior.")
-    st.write("• High income + high spending → premium customers")
-    st.write("• High income + low spending → target marketing group")
