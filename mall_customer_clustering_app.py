@@ -2,6 +2,7 @@
 # Import libraries
 import numpy as np
 import pandas as pd
+pip install numpy pandas scikit-learn matplotlib streamlit
 import matplotlib.pyplot as plt   # ✅ Missing import
 from sklearn.cluster import KMeans
 
