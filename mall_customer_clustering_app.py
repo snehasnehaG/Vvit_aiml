@@ -1,70 +1,61 @@
+ 
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
-# Title
-st.title("Mall Customer Clustering App")
+st.title("Mall Customer Clustering")
 
-# Upload dataset
-uploaded_file = st.file_uploader("Upload Mall_Customers.csv", type=["csv"])
+uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
 if uploaded_file is not None:
-    dataset = pd.read_csv(uploaded_file)
+    data = pd.read_csv(uploaded_file)
 
-    st.subheader("Dataset Preview")
-    st.write(dataset.head())
+    st.write("Dataset Preview")
+    st.write(data.head())
 
-    # Select features
-    X = dataset.iloc[:, [3, 4]].values
+    # Check columns safely
+    if data.shape[1] < 5:
+        st.error("Dataset must have at least 5 columns")
+    else:
+        X = data.iloc[:, [3, 4]].values
 
-    # Elbow Method
-    st.subheader("Elbow Method")
-    wcss = []
-    for i in range(1, 11):
-        kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42)
-        kmeans.fit(X)
-        wcss.append(kmeans.inertia_)
+        # Elbow Method
+        wcss = []
+        for i in range(1, 11):
+            model = KMeans(n_clusters=i, random_state=42)
+            model.fit(X)
+            wcss.append(model.inertia_)
 
-    fig1, ax1 = plt.subplots()
-    ax1.plot(range(1, 11), wcss)
-    ax1.set_title("Elbow Method")
-    ax1.set_xlabel("Number of clusters")
-    ax1.set_ylabel("WCSS")
-    st.pyplot(fig1)
+        fig, ax = plt.subplots()
+        ax.plot(range(1, 11), wcss)
+        ax.set_title("Elbow Method")
+        ax.set_xlabel("Clusters")
+        ax.set_ylabel("WCSS")
+        st.pyplot(fig)
 
-    # Choose clusters
-    k = st.slider("Select number of clusters", 2, 10, 5)
+        k = st.slider("Select clusters", 2, 10, 5)
 
-    # KMeans
-    kmeans = KMeans(n_clusters=k, init='k-means++', random_state=42)
-    y_kmeans = kmeans.fit_predict(X)
+        model = KMeans(n_clusters=k, random_state=42)
+        y = model.fit_predict(X)
 
-    # Visualization
-    st.subheader("Customer Clusters")
+        fig2, ax2 = plt.subplots()
 
-    fig2, ax2 = plt.subplots()
+        for i in range(k):
+            ax2.scatter(X[y == i, 0], X[y == i, 1], label=f"Cluster {i+1}")
 
-    for i in range(k):
-        ax2.scatter(X[y_kmeans == i, 0],
-                    X[y_kmeans == i, 1],
-                    s=50,
-                    label=f"Cluster {i+1}")
+        ax2.scatter(model.cluster_centers_[:, 0],
+                    model.cluster_centers_[:, 1],
+                    marker='X',
+                    s=200,
+                    label="Centroids")
 
-    # Centroids
-    ax2.scatter(kmeans.cluster_centers_[:, 0],
-                kmeans.cluster_centers_[:, 1],
-                s=200,
-                marker='X',
-                label='Centroids')
+        ax2.set_xlabel("Income")
+        ax2.set_ylabel("Spending Score")
+        ax2.legend()
 
-    ax2.set_title("Clusters of Customers")
-    ax2.set_xlabel("Annual Income")
-    ax2.set_ylabel("Spending Score")
-    ax2.legend()
-
-    st.pyplot(fig2)
+        st.pyplot(fig2)
 
 else:
-    st.info("Please upload a CSV file to proceed.")
+    st.info("Upload dataset to continue")   
+    
