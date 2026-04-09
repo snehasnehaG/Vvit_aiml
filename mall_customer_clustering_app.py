@@ -39,4 +39,4 @@ plt.scatter(X[y_kmeans == 3, 0], X[y_kmeans == 3, 1], s=100, c='cyan', label='Cl
 plt.scatter(X[y_kmeans == 4, 0], X[y_kmeans == 4, 1], s=100, c='magenta', label='Cluster 5')
 
 # Centroids
-plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:,]
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:,])
