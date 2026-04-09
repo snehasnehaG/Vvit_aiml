@@ -1,43 +1,71 @@
+pip install streamlit pandas matplotlib scikit-learn
 import streamlit as st
-import pickle
-import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
-# 🎯 Title (UPDATED)
+# Title
 st.title("🛍️ Mall Customer Clustering App")
 
-st.write("Enter customer details to find their cluster")
+# Load Dataset
+@st.cache_data
+def load_data():
+    url = "https://raw.githubusercontent.com/plotly/datasets/master/mall_customers.csv"
+    df = pd.read_csv(url)
+    return df
 
-# 📥 Load model
-import pickle
+df = load_data()
 
-with open("kmeans_model.pkl", "rb") as f:
-    model = pickle.load(f)
+st.subheader("Dataset Preview")
+st.write(df.head())
 
-# 📊 Input
-income = st.number_input("Annual Income (k$)", min_value=0)
-spending = st.number_input("Spending Score (1-100)", min_value=0, max_value=100)
+# Select Features
+st.subheader("Select Features for Clustering")
 
-# 🔍 Button
-if st.button("Find Customer Cluster"):
-    
-    data = np.array([[income, spending]])
-    cluster = model.predict(data)[0]
+features = st.multiselect(
+    "Choose features",
+    ["Annual Income (k$)", "Spending Score (1-100)"],
+    default=["Annual Income (k$)", "Spending Score (1-100)"]
+)
 
-    # ✅ Output
-    st.success(f"Cluster: {cluster}")
+if len(features) != 2:
+    st.warning("Please select exactly 2 features for 2D visualization.")
+else:
+    X = df[features]
 
-    # 💡 Cluster meaning
-    if cluster == 0:
-        st.info("Low Income, Low Spending")
-    elif cluster == 1:
-        st.info("High Income, High Spending (Premium Customers 💎)")
-    elif cluster == 2:
-        st.info("High Income, Low Spending (Target Customers 🎯)")
-    elif cluster == 3:
-        st.info("Low Income, High Spending")
-    else:
-        st.info("Average Customers")
+    # Choose number of clusters
+    k = st.slider("Select number of clusters (K)", 2, 10, 5)
 
-    # ✨ Insight
-    st.markdown("### 💡 Insight")
-    st.write("High income but low spending customers are target customers for marketing.")
+    # Apply KMeans
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    y_kmeans = kmeans.fit_predict(X)
+
+    # Plot clusters
+    fig, ax = plt.subplots()
+
+    scatter = ax.scatter(
+        X.iloc[:, 0],
+        X.iloc[:, 1],
+        c=y_kmeans
+    )
+
+    # Plot centroids
+    centroids = kmeans.cluster_centers_
+    ax.scatter(
+        centroids[:, 0],
+        centroids[:, 1],
+        s=200,
+        marker='X'
+    )
+
+    ax.set_xlabel(features[0])
+    ax.set_ylabel(features[1])
+    ax.set_title("Customer Segments")
+
+    st.pyplot(fig)
+
+    # Insights
+    st.subheader("Insights")
+    st.write("• Customers are grouped based on income and spending behavior.")
+    st.write("• High income + high spending → premium customers")
+    st.write("• High income + low spending → target marketing group")
