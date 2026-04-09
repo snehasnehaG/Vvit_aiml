@@ -1,1 +1,10 @@
-
+pandas 
+numpy
+scikit-learn
+matplotlib
+streamlit
+seaborn
+altair<5
+standard-inghdr
+pyarrow
+openai
